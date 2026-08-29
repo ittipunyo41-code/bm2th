@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>พจนานุกรมพม่า-ไทย</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --myanmar-color: #991b1b;
+            --phonetic-color: #1e3a8a;
+        }
+        body {
+            font-family: 'Sarabun', -apple-system, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: #334155;
+            font-size: 14px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        .header-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        h2 { margin: 0 0 12px 0; font-size: 1.2rem; color: var(--primary); text-align: center; }
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .upload-form { display: flex; gap: 8px; align-items: center; }
+        .search-bar-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .search-input, .select-input {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            outline: none;
+            background: #fff;
+        }
+        .btn {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-success { background: #10b981; color: #fff; }
+        .btn-danger { background: #ef4444; color: #fff; }
+        .btn-primary { background: #3b82f6; color: #fff; }
+        .btn-pdf { background: #0284c7; color: #fff; }
+        .btn-admin { background: #475569; color: #fff; }
+        .dict-book {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            min-height: 400px;
+        }
+        .dict-count {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .dict-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 24px;
+        }
+        @media (max-width: 640px) { .dict-list { grid-template-columns: 1fr; } }
+        .dict-entry {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed #f1f5f9;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .entry-content { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+        .word-myanmar { font-size: 1.05rem; font-weight: bold; color: var(--myanmar-color); }
+        .word-meaning { font-weight: 500; color: #1e293b; }
+        .word-phonetic { font-size: 0.85rem; color: var(--phonetic-color); }
+        .badge-cat {
+            font-size: 0.7rem;
+            padding: 1px 6px;
+            background: #f1f5f9;
+            color: #475569;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            text-transform: uppercase;
+        }
+        .entry-actions { display: flex; gap: 4px; }
+        .btn-action { background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 0.85rem; }
+        .btn-action:hover { color: #3b82f6; }
+        .btn-action.del:hover { color: #ef4444; }
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .page-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            color: var(--primary);
+        }
+        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .page-info { font-size: 0.85rem; color: #64748b; font-weight: 500; }
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-card {
+            background: #fff; padding: 24px; border-radius: 8px;
+            width: 100%; max-width: 400px;
+        }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 0.85rem; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 8px 10px;
+            border: 1px solid var(--border); border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .modal-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+        .hidden { display: none !important; }
+        @media print {
+            body { background: #fff !important; padding: 0 !important; }
+            .header-card, .search-bar-grid, .entry-actions, .modal-overlay, .pagination-bar { display: none !important; }
+            .dict-book { border: none !important; box-shadow: none !important; padding: 0 !important; }
+            .dict-list { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 6mm 10mm !important; }
+            .dict-entry { border-bottom: 1px dotted #ccc !important; page-break-inside: avoid !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-card">
+        <h2>พจนานุกรมภาษาพม่า-ไทย (Myanmar-Thai Dictionary)</h2>
+        <div class="action-bar">
+            <!-- นำเข้าไฟล์ (เฉพาะ Admin) -->
+            <form class="upload-form admin-only hidden" onsubmit="uploadFile(event)">
+                <input type="file" id="dictFile" accept=".csv, .txt" required>
+                <button type="submit" class="btn btn-success" id="btnUpload">นำเข้าไฟล์ CSV/TXT</button>
+            </form>
+
+            <div style="display: flex; gap: 8px; margin-left: auto;">
+                <button onclick="window.print()" class="btn btn-pdf">🖨️ บันทึกเป็น PDF</button>
+                <button onclick="downloadBackup()" class="btn btn-primary admin-only hidden">💾 Back Up ข้อมูล</button>
+                <button id="btnLogin" onclick="openLoginModal()" class="btn btn-admin">🔑 Admin Login</button>
+                <button id="btnLogout" onclick="adminLogout()" class="btn btn-admin hidden">🔒 Logout</button>
+                <button onclick="clearAllData()" class="btn btn-danger admin-only hidden">ล้างข้อมูล</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="search-bar-grid">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 ค้นหาคำพม่า, คำแปลไทย, คำอ่าน..." oninput="onSearchChange()">
+        <select id="catSelect" class="select-input" onchange="onCategoryChange()">
+            <option value="all">📁 ทุกหมวดหมู่</option>
+            <option value="nouns">Nouns (คำนาม)</option>
+            <option value="verbs">Verbs (คำกริยา)</option>
+            <option value="adjectives">Adjectives (คุณศัพท์)</option>
+            <option value="adverbs">Adverbs (กริยาวิเศษณ์)</option>
+            <option value="pronouns">Pronouns (สรรพนาม)</option>
+            <option value="conjunctions">Conjunctions (คำเชื่อม)</option>
+            <option value="particles">Particles (คำช่วย)</option>
+            <option value="postpositions">Postpositions (คำบุพบท)</option>
+        </select>
+    </div>
+
+    <div class="dict-book">
+        <div class="dict-count">
+            <span id="dictCount">จำนวนคำศัพท์: 0 รายการ</span>
+            <span id="currentCatDisplay">หมวดหมู่: ทั้งหมด</span>
+        </div>
+        <div class="dict-list" id="dictList"></div>
+        <div class="pagination-bar">
+            <button class="page-btn" id="prevBtn" onclick="changePage(-1)">❮ ก่อนหน้า</button>
+            <span class="page-info" id="pageInfo">หน้า 1 จาก 1</span>
+            <button class="page-btn" id="nextBtn" onclick="changePage(1)">ถัดไป ❯</button>
+        </div>
+    </div>
+</div>
+
+<!-- Login Modal -->
+<div id="loginModal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <h3>เข้าสู่ระบบสำหรับ Admin</h3>
+        <div class="form-group">
+            <label>Username:</label>
+            <input type="text" id="loginUser" placeholder="admin">
+        </div>
+        <div class="form-group">
+            <label>Password:</label>
+            <input type="password" id="loginPass" placeholder="••••••">
+        </div>
+        <div class="modal-btns">
+            <button class="btn" onclick="closeLoginModal()" style="background:#e2e8f0; color:#475569;">ยกเลิก</button>
+            <button class="btn btn-primary" onclick="submitLogin()">เข้าสู่ระบบ</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <h3>แก้ไขข้อมูลคำศัพท์</h3>
+        <input type="hidden" id="editId">
+        <div class="form-group">
+            <label>หมวดหมู่:</label>
+            <select id="editCategory">
+                <option value="nouns">Nouns</option>
+                <option value="verbs">Verbs</option>
+                <option value="adjectives">Adjectives</option>
+                <option value="adverbs">Adverbs</option>
+                <option value="pronouns">Pronouns</option>
+                <option value="conjunctions">Conjunctions</option>
+                <option value="particles">Particles</option>
+                <option value="postpositions">Postpositions</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>ภาษาพม่า:</label>
+            <input type="text" id="editMyanmar">
+        </div>
+        <div class="form-group">
+            <label>คำแปลไทย:</label>
+            <input type="text" id="editMeaning">
+        </div>
+        <div class="form-group">
+            <label>คำอ่านไทย:</label>
+            <input type="text" id="editPhonetic">
+        </div>
+        <div class="modal-btns">
+            <button class="btn" onclick="closeEditModal()" style="background:#e2e8f0; color:#475569;">ยกเลิก</button>
+            <button class="btn btn-primary" onclick="saveEdit()">บันทึก</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let searchTimer;
+let currentPage = 1;
+let totalPages = 1;
+let isAdmin = false;
+
+function checkAdminStatus() {
+    isAdmin = localStorage.getItem('isDictAdmin') === 'true';
+    document.querySelectorAll('.admin-only').forEach(el => {
+        if (isAdmin) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+    });
+    document.getElementById('btnLogin').classList.toggle('hidden', isAdmin);
+    document.getElementById('btnLogout').classList.toggle('hidden', !isAdmin);
+}
+
+function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); }
+function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
+
+async function submitLogin() {
+    const username = document.getElementById('loginUser').value;
+    const password = document.getElementById('loginPass').value;
+    const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    });
+    if (res.ok) {
+        localStorage.setItem('isDictAdmin', 'true');
+        closeLoginModal();
+        checkAdminStatus();
+        loadDictionary();
+        alert('เข้าสู่ระบบ Admin สำเร็จ');
+    } else {
+        alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+    }
+}
+
+function adminLogout() {
+    localStorage.removeItem('isDictAdmin');
+    checkAdminStatus();
+    loadDictionary();
+    alert('ออกจากระบบแล้ว');
+}
+
+function downloadBackup() {
+    window.location.href = '/api/export-backup';
+}
+
+function onSearchChange() {
+    currentPage = 1;
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadDictionary, 300);
+}
+
+function onCategoryChange() {
+    currentPage = 1;
+    loadDictionary();
+}
+
+function changePage(direction) {
+    const newPage = currentPage + direction;
+    if (newPage >= 1 && newPage <= totalPages) {
+        currentPage = newPage;
+        loadDictionary();
+    }
+}
+
+async function loadDictionary() {
+    const q = document.getElementById('searchInput').value.trim();
+    const cat = document.getElementById('catSelect').value;
+    const res = await fetch(`/api/dictionary?q=${encodeURIComponent(q)}&cat=${encodeURIComponent(cat)}&page=${currentPage}&limit=50`);
+    const result = await res.json();
+    const data = result.data;
+    const pag = result.pagination;
+    currentPage = pag.currentPage;
+    totalPages = pag.totalPages;
+    document.getElementById('dictCount').innerText = `จำนวนคำศัพท์: ${pag.totalItems} รายการ`;
+    document.getElementById('currentCatDisplay').innerText = `หมวดหมู่: ${cat.toUpperCase()}`;
+    document.getElementById('pageInfo').innerText = `หน้า ${currentPage} จาก ${totalPages}`;
+    document.getElementById('prevBtn').disabled = (currentPage <= 1);
+    document.getElementById('nextBtn').disabled = (currentPage >= totalPages);
+    const listEl = document.getElementById('dictList');
+    listEl.innerHTML = '';
+    if (data.length === 0) {
+        listEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#94a3b8;padding:30px;">ไม่พบข้อมูล</div>';
+        return;
+    }
+    data.forEach(item => {
+        const entry = document.createElement('div');
+        entry.className = 'dict-entry';
+        const itemStr = JSON.stringify(item).replace(/'/g, "&#39;");
+        const actionHtml = isAdmin ? `
+            <div class="entry-actions">
+                <button class="btn-action" title="แก้ไข" onclick='openEditModal(${itemStr})'>✏️</button>
+                <button class="btn-action del" title="ลบ" onclick="deleteEntry(${item.id})">✕</button>
+            </div>` : '';
+        entry.innerHTML = `
+            <div class="entry-content">
+                <span class="badge-cat">${item.category || 'nouns'}</span>
+                <span class="word-myanmar">${item.myanmar_text}</span>
+                ${item.thai_meaning ? `<span class="word-meaning">- ${item.thai_meaning}</span>` : ''}
+                ${item.thai_phonetic ? `<span class="word-phonetic">(${item.thai_phonetic})</span>` : ''}
+            </div>
+            ${actionHtml}
+        `;
+        listEl.appendChild(entry);
+    });
+}
+
+function openEditModal(item) {
+    document.getElementById('editId').value = item.id;
+    document.getElementById('editCategory').value = item.category || 'nouns';
+    document.getElementById('editMyanmar').value = item.myanmar_text;
+    document.getElementById('editMeaning').value = item.thai_meaning;
+    document.getElementById('editPhonetic').value = item.thai_phonetic;
+    document.getElementById('editModal').classList.remove('hidden');
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').classList.add('hidden');
+}
+
+async function saveEdit() {
+    const id = document.getElementById('editId').value;
+    const body = {
+        category: document.getElementById('editCategory').value,
+        myanmar_text: document.getElementById('editMyanmar').value,
+        thai_meaning: document.getElementById('editMeaning').value,
+        thai_phonetic: document.getElementById('editPhonetic').value
+    };
+    await fetch(`/api/dictionary/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    });
+    closeEditModal();
+    loadDictionary();
+}
+
+async function uploadFile(e) {
+    e.preventDefault();
+    const fileInput = document.getElementById('dictFile');
+    if (!fileInput.files[0]) return;
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    const btn = document.getElementById('btnUpload');
+    btn.innerText = 'กำลังนำเข้า...';
+    btn.disabled = true;
+    try {
+        const res = await fetch('/api/upload-file', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) {
+            alert(`นำเข้าสำเร็จ ${data.count} รายการ`);
+            fileInput.value = '';
+            currentPage = 1;
+            loadDictionary();
+        }
+    } catch (err) {
+        alert('เกิดข้อผิดพลาดในการอัปโหลด');
+    } finally {
+        btn.innerText = 'นำเข้าไฟล์ CSV/TXT';
+        btn.disabled = false;
+    }
+}
+
+async function deleteEntry(id) {
+    if (!confirm('ยืนยันลบคำนี้?')) return;
+    await fetch(`/api/dictionary/${id}`, { method: 'DELETE' });
+    loadDictionary();
+}
+
+async function clearAllData() {
+    if (!confirm('เตือน: ต้องการลบข้อมูลทั้งหมดหรือไม่?')) return;
+    await fetch('/api/dictionary-all', { method: 'DELETE' });
+    currentPage = 1;
+    loadDictionary();
+}
+
+checkAdminStatus();
+loadDictionary();
+</script>
+</body>
+</html>
